@@ -1,0 +1,36 @@
+{
+  "name": "invisible-code",
+  "version": "1.0.0",
+  "description": "a talk about shared, mutable state",
+  "scripts": {
+    "start": "mdx-deck deck.mdx",
+    "build": "rm -rf dist && mdx-deck build --no-html deck.mdx && cp -R material dist/",
+    "deploy": "gh-pages -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:spicydonuts/invisible-code.git"
+  },
+  "keywords": [
+    "shared",
+    "mutable",
+    "state",
+    "immutability",
+    "fp",
+    "invisible",
+    "code"
+  ],
+  "author": "Michael Trotter <spicydonuts@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spicydonuts/invisible-code/issues"
+  },
+  "homepage": "https://github.com/spicydonuts/invisible-code#readme",
+  "devDependencies": {
+    "gh-pages": "1.2.0",
+    "mdx-deck": "1.7.3",
+    "mdx-deck-code-surfer": "0.4.1",
+    "raw-loader": "0.5.1",
+    "react-syntax-highlighter": "8.0.1"
+  }
+}

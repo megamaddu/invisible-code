@@ -1,0 +1,1038 @@
+import { Appear, Head, Image } from "mdx-deck";
+import { Invert, SplitRight } from "mdx-deck/layouts";
+import { CodeSurfer } from "mdx-deck-code-surfer";
+import nightOwl from "prism-react-renderer/themes/nightOwl"
+import About from "./material/components/About";
+import { Problem, Recognize, Solution } from "./material/components/Headers";
+import { File, Dependency, FileSurface } from "./material/components/File";
+import theme from "./material/theme";
+
+export { theme }
+
+export default Invert
+
+<Head>
+  <title>invisible code</title>
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://spicydonuts.github.io/invisible-code" />
+  <meta name="twitter:site" content="@spcydnts" />
+  <meta name="twitter:title" content="Invisible Code" />
+  <meta name="twitter:description" content="&quot;Avoid global state&quot; is a simplification of the problems caused by shared state. It really does help, but it's good to know why that's the case so you know wh en/where exceptions are appropriate. It's also good to understand because it can influence isolated bits of code as well, but with less severe consequences." />
+  <meta name="twitter:image" content="https://spicydonuts.github.io/invisible-code/material/images/title.png" />
+  <style dangerouslySetInnerHTML={{__html: "a:visited { color: #0af; }"}} />
+</Head>
+
+# invisible code
+
+<About />
+
+```notes
+- intro
+
+- start with a quote
+```
+
+---
+
+# "Avoid global state"
+
+<Appear>
+  <h2>- everyone</h2>
+  <p><i>* all shared, mutable state -- "global" implies "shared"</i></p>
+</Appear>
+
+```notes
+- who said? everyone?
+
+- heard this a lot
+
+- didn't understand why
+
+- learned more
+
+- touches much much more than I thought
+
+- key word here is "MUTABLE"
+
+- so most of this talk is going to cover the problems mutability causes
+
+- will come back to the "invisible code" idea
+```
+
+---
+
+<ul style={{textAlign: "left"}}>
+  <Appear>
+    <li><h2 style={{color: "tomato"}}>the problems shared, mutable state causes</h2></li>
+    <li><h2 style={{color: "cornflowerblue"}}>how you can recognize it</h2></li>
+    <li><h2 style={{color: "darkseagreen"}}>what you can do to fix it</h2></li>
+  </Appear>
+</ul>
+
+```notes
+- so, to break it down a bit more...
+```
+
+---
+
+<Problem>problem #1</Problem>
+
+# mutability hides change
+
+```notes
+- mutability hides change
+
+- note: I'll use the word "mutability" a lot -- assume "shared, mutable state"
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutable.js")}
+  theme={nightOwl}
+/>
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/immutable.js")}
+  theme={nightOwl}
+/>
+
+---
+
+<Recognize>recognize #1</Recognize>
+
+# the missing return value
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/looping/for.js")}
+  theme={nightOwl}
+  steps={[
+    { lines: [1], notes: "no return value is a warning sign!" },
+    { tokens: { 3: [5], 4: [0, 4] }, lines: [5], notes: "mutating unowned state!\n(we'll come back to \"ownership\" later)" },
+  ]}
+/>
+
+```notes
+- no return value (from `transform`, the `forEach` callback, or `forEach` itself)
+
+  - a function has to do _something_, or there's no reason to call it
+
+  - if it doesn't return anything... something is mutating
+
+- mutating unowned things (will return to this ownership idea)
+```
+
+---
+
+<Solution>fix #1</Solution>
+
+# return changes!
+
+```notes
+- (easy, right??)
+
+- also treat any function that doesn't return you a value with extreme suspicion
+
+- note: return values don't guarantee things aren't mutating, but not having one is a sure sign
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/looping/map.js")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 1: [4], 2: [2, 6], 4: [1, 2], 5: [2, 3, 4] }, notes: "doesn't mutate these 👍" },
+    { tokens: { 2: [1, 3, 4], 3: [1] }, notes: "results are returned 👍" },
+  ]}
+/>
+
+```notes
+- not mutating, copying and returning (map!)
+```
+
+---
+
+<Problem>problem #2</Problem>
+
+# mutability is unpredictable
+
+```notes
+- unpredictable
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/unpredictable/time.1.js")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 1: [0, 1, 2, 3, 4], 2: [0, 1, 2, 3, 4, 5], 3: [0, 1, 2, 3, 4, 5] }, notes: "make 3 cakes 🍰" },
+    { tokens: { 1: [6], 2: [7], 3: [7] }, notes: "each is slightly different..." },
+    { tokens: { 8: [2, 3, 4, 5, 6] }, notes: "reading from mutable state 🤦" },
+  ]}
+/>
+
+```notes
+- make 3 cakes
+
+- each slightly different
+
+- reading from mutable state
+
+  - almost as bad as writing to it (unless it shouldn't be mutable and someone else isn't playing nice!)
+```
+
+---
+
+<Recognize>recognize #2</Recognize>
+
+# output varies, given the same arguments
+
+<Appear>
+  <h1>(idempotence)</h1>
+</Appear>
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/unpredictable/query.js")}
+  theme={nightOwl}
+/>
+
+```notes
+- element's children are not immutable
+```
+
+---
+
+<Solution>fix #2</Solution>
+
+# lift! 🏋
+
+```notes
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/unpredictable/time.2.js")}
+  theme={nightOwl}
+  steps={[
+    { lines: [1], tokens: { 2: [5], 3: [5], 4: [5], 7: [3], 8: [0], 9: [0], 10: [1] }, notes: "reading of the mutable value lifted out of `makeCake` ✨" },
+  ]}
+/>
+
+```notes
+- hey, this kinda looks like IoC!
+
+- if `makeCake` warrants a test, we no longer need to mock the global Date object
+
+  - having to create "mock" objects in tests is a good sign mutation is taking place
+```
+
+---
+
+what about lifting a write mutation?
+
+🤔
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/unpredictable/log.1.js")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 3: [0, 1, 2, 3, 5] }, notes: "" }
+  ]}
+/>
+
+```notes
+- does console.log involve mutation?
+
+  - notice, there's no return value..
+
+  - mutating the console
+
+- so how do lift we console.log?
+```
+
+---
+
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/unpredictable/log.2.js")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 3: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12] }, notes: "" },
+    { tokens: { 7: [1, 2, 4] }, notes: "" },
+  ]}
+/>
+
+```notes
+- return a description of the mutation you want performed!
+
+- also kinda like IoC
+
+- we don't want all that responsibility in here... YOU run this mutation if you want it so bad!
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/unpredictable/log.3.js")}
+  theme={nightOwl}
+/>
+
+---
+
+for more detail see:
+
+- [FP to the Max](https://www.youtube.com/watch?v=sxudIMiOo68)
+  an in depth tutorial by John De Goes
+- [Mostly Adequate Guide to Functional Programming](https://mostly-adequate.gitbooks.io/mostly-adequate-guide/)
+  a complete intro to FP by Brian Lonsdorf
+- [Fantasy Land](https://github.com/fantasyland/fantasy-land)
+  a library of abstraction tools for JavaScript
+
+---
+
+<Problem>problem #3</Problem>
+
+# mutability adds time-dependent behavior
+
+```notes
+- time-dependent behavior
+
+  - don't just mean Date.now like the previous example
+
+  - abstract time, the ordering of events
+
+- and time-dependent bugs
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutating-functions.1.js")}
+  theme={nightOwl}
+/>
+
+```notes
+- calling two functions
+
+- passing data in, but they could be parameter-less as well
+
+- no return values.. what are they doing??
+
+- consider...... [next slide]
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutating-functions.2.js")}
+  theme={nightOwl}
+/>
+
+```notes
+- how does the program behave now?
+
+  - same?
+
+  - exceptions thrown?
+
+  - quietly broken?
+```
+
+---
+
+<Recognize>recognize #3</Recognize>
+
+# any mutability
+
+<Appear>
+  <h1>(we're building off of #1 &amp; #2 😉)</h1>
+</Appear>
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutating-functions.1.js")}
+  theme={nightOwl}
+/>
+
+```notes
+- it's obvious some mutation is happening
+
+  - there are no return values!
+```
+
+---
+
+<Solution>fix #3</Solution>
+
+# use those return values! ➿
+
+```notes
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutating-functions.3.js")}
+  theme={nightOwl}
+/>
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutating-functions.4.js")}
+  theme={nightOwl}
+/>
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/mutability/mutating-functions.5.js")}
+  theme={nightOwl}
+/>
+
+---
+
+<Problem>problem #4</Problem>
+
+# mutability makes dependency trees lie
+
+```notes
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/looping/for.js")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 1: [4], 2: [0, 4] }, lines: [3], notes: "" },
+  ]}
+/>
+
+```notes
+- remember this example
+
+- mentioned ownership
+
+- TODO
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/angular.1.js")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 1: [4, 9], 5: [4, 9] }, lines: [2, 6], notes: "" },
+  ]}
+/>
+
+```notes
+- these $scopes are different objects
+
+- in this code
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/angular.1.html")}
+  theme={nightOwl}
+  steps={[
+    { tokens: { 1: [6], 2: [7], 3: [1, 2, 3, 4, 5, 8, 9, 10, 11, 12] }, notes: "`outer` available on inner `$scope`" },
+  ]}
+/>
+
+```notes
+- `outer` available on inner `$scope`
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/angular.2.html")}
+  theme={nightOwl}
+/>
+
+```notes
+- without the "correct" outer controller, `outer` is broken
+
+- two ways for it to break:
+
+  - has no value
+
+    - exceptions
+
+    - empty UI
+
+  - falls back to something unrelated with the same name
+
+    - read or mutate something even more unowned and unexpected
+
+    - very, very hard to debug!
+
+      - remember, no change tracking
+
+      - we have to catch it actually happening in dev tools
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/angular.3.html")}
+  theme={nightOwl}
+/>
+
+```notes
+- say we removed `outer` from the view
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/angular.2.js")}
+  theme={nightOwl}
+/>
+
+```notes
+- the controller itself might depend on things it doesn't own
+
+- OuterController logic might even depend on InnerController behavior
+```
+
+---
+
+<Recognize>recognize #4</Recognize>
+
+# reading or modifying anything mutable you don't own
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/ownership.1.js")}
+  theme={nightOwl}
+  steps={[
+    { lines: [1], tokens: { 5: [11] }, notes: "does reading `api` here involve mutability? 🤔" },
+    { lines: [1], tokens: { 5: [11] }, notes: "no! `api` is an immutable value stored as a const 🎉" },
+    { tokens: { 5: [6, 13] }, notes: "`id`?" },
+    { tokens: { 5: [6, 13] }, notes: "probably safe, technically depends on what `id` is and what its owner is doing with it.." },
+    { tokens: { 5: [18, 20, 21, 22, 23, 24] }, notes: "`res.json()`?" },
+    { tokens: { 5: [18, 20, 21, 22, 23, 24] }, notes: "it's mutation! `.json()` can only be called once!" },
+    { tokens: { 5: [18, 20, 21, 22, 23, 24] }, notes: "(but `res` is not exposed 👍)" },
+    { lines: [3], tokens: { 8: [4] }, notes: "`cache`? (not `.get()`)" },
+    { lines: [3], tokens: { 8: [4] }, notes: "depends, again.." },
+    { tokens: { 8: [5, 6, 7, 8, 9] }, notes: "ok, `.get()`?" },
+    { tokens: { 8: [5, 6, 7, 8, 9], 12: [1, 2, 3, 4, 5, 6, 7] }, notes: "definitely! Maps are mutable dictionaries" },
+  ]}
+/>
+
+```notes
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/ownership.2.js")}
+  theme={nightOwl}
+/>
+
+```notes
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/ownership.3.js")}
+  theme={nightOwl}
+/>
+
+```notes
+```
+
+---
+
+# dependencies
+
+
+```notes
+- remember, we're doing this exercise to determine dependencies
+```
+
+---
+
+export default FileSurface
+
+<File name="A.js" fg="white" bg="tomato" top="20%" left="47%" />
+<File name="B.js" fg="white" bg="cornflowerblue" top="70%" left="30%" />
+<File name="C.js" fg="white" bg="darkseagreen" top="70%" left="64%" />
+
+<Appear>
+  <div>
+    <Dependency rotation="45deg" bg="white" top="40%" left="38%" />
+    <Dependency rotation="-45deg" bg="white" top="40%" left="55%" />
+  </div>
+  <div>
+    <Dependency rotation="-135deg" bg="white" top="40%" left="33%" />
+    <Dependency rotation="135deg" bg="white" top="40%" left="60%" />
+  </div>
+  <div>
+    <Dependency rotation="90deg" bg="white" top="58%" left="47%" />
+    <Dependency rotation="-90deg" bg="white" top="68%" left="47%" />
+  </div>
+</Appear>
+
+```notes
+- suppose you have 3 files -- A, B, and C -- where B and C depend on A
+
+- if A exposes mutable state, the dependencies go BOTH ways
+
+- not only that..
+
+- you might assume B and C are unrelated (they should be)
+
+- they could live in completely different libraries and simply share a common dependency
+
+- but if each mutates state in A, they now have direct (and time-sensitive) dependencies on each other
+
+- this connection is implicit
+
+  - the behavior and dependencies don't materialize until the code is running
+
+  - i.e. they require _time_ to be moving to see and explain
+
+  - or "running" in a developer's head
+
+- worse case of "invisible code"
+
+  - changing any of these files can break the others as well
+```
+
+---
+
+<Solution>fix #4</Solution>
+
+# don't mutate unowned things, understand and follow "ownership"
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/dnd.1.js")}
+  theme={nightOwl}
+  steps={[
+    { lines: [2, 3, 4, 5, 7, 12], notes: "" }
+  ]}
+/>
+
+```notes
+- simple file upload
+
+- when a file is dropped, reset the dnd state
+
+- along came... a new requirement!
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/dnd.2.js")}
+  theme={nightOwl}
+  steps={[
+    { lines: [5], notes: "" },
+    { lines: [5, 13], notes: "" }
+  ]}
+/>
+
+```notes
+- unrelated business logic added
+
+- now two separate groups of logic exist in this component
+
+- they share.. mutable state
+
+- which means there are time/ordering implications
+
+- the dev making the new changes focused on their new logic, not the dnd logic
+
+- mutable, shared state required understanding the ENTIRE system before making changes
+
+- now that we know, how do we fix this?
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/dnd.3.js")}
+  theme={nightOwl}
+/>
+
+```notes
+- in this case, we still need the mutable state
+
+- but we should separate these unrelated things to lessen the surface area for bugs
+
+- here we split the dnd state from the rest of the FileUpload state
+
+- render props are a great pattern for isolating state
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/dependencies/dnd.4.js")}
+  theme={nightOwl}
+  steps={[
+    { lines: [2, 3, 4, 8, 9, 10, 11, 12], notes: "" }
+  ]}
+/>
+
+```notes
+- back in the FileUpload component, state is dedicated to this new logic
+
+- we could use a render prop to separate it as well
+
+- at first glance HoC are similar, but they blend props and logic back together again to create the end result
+
+- render props also work very nicely with type systems, while HoC do not
+```
+
+---
+
+<Problem>problem #5</Problem>
+
+# complexity increases exponentially
+
+```notes
+- examples so far fairly small, condensed to one or two problems
+
+- in real apps, unchecked mutability can quickly get out of hand
+
+- consider the angular1 example earlier
+
+  - building large multi-step forms
+
+  - many controllers, many watchers, ownership unclear
+
+  - terrifying to edit
+
+  - I laid the seeds for this mess by leaning heavily on mutability while the form was still "simple"
+
+  - 3 years later it was no longer maintainable
+
+- consider modern frameworks
+
+  - jQuery was _the_ tool for a long time
+
+  - it's now become somewhat infamous for creating mountains of spaghetti code
+
+  - not to say jQuery is at fault, it's really the DOM APIs
+
+  - modern tools like React (and its spinoffs) or Elm present the DOM abstractly using mostly immutable data
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/payment-processor/order-service.1.cs")}
+  lang="java"
+  theme={nightOwl}
+  steps={
+    [ { tokens: { 8: [ 2, 3, 4, 5 ] }
+      , notes: "🚩 no return value!"
+      }
+    , { tokens: { 9: [ 2, 3, 4, 5 ] }
+      , notes: "🚩 no return value, no arguments!!"
+      }
+    , { tokens: { 10: [ 2, 3, 4, 5 ] }
+      , notes: "🚩 no return value, no arguments!!!!"
+      }
+    , { tokens: { 8: [ 2, 3, 4, 5 ]
+                , 9: [ 2, 3, 4, 5 ]
+                , 10: [ 2, 3, 4, 5 ]
+                }
+      , notes: "🚩🚩🚩"
+      }
+    , { tokens: { 8: [ 2, 3, 4, 5 ]
+                , 9: [ 2, 3, 4, 5 ]
+                , 10: [ 2, 3, 4, 5 ]
+                }
+      , notes: "🚩🚩🚩"
+      }
+    , { lines: [ 3 ]
+      , notes: ""
+      }
+    ]
+  }
+/>
+
+```notes
+- c#
+
+- OrderService (and services it uses) are extremely state-heavy (lots of instance fields)
+
+- only showing lines relevant to this particular bug
+
+- 1000 other lines with their own red flags scattered everywhere
+
+- but let's look at these couple lines..
+
+- what if things are not as they seem?
+```
+
+---
+
+<Image src="material/images/morpheus.jpg" size="contain" />
+
+```notes
+- what if I told you, Morpheus never told you, "what if I told you"?
+
+- anyways, I started putting log statements everywhere, adding breakpoints..
+
+- the logs didn't make sense
+
+- the breakpoints were pretty useless
+
+  - turns out freezing at random moments in time is not a good way to debug time-dependent logic!!
+
+- but eventually, stumbled onto this line
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/payment-processor/ioc.1.cs")}
+  lang="java"
+  theme={nightOwl}
+  steps={[
+    { tokens: { 4: [2] }, notes: "🤦" }
+  ]}
+/>
+
+```notes
+- notice -- AddSingleton
+```
+
+---
+
+<CodeSurfer
+  notes=" "
+  code={require("!raw-loader!./material/code-examples/payment-processor/ioc.3.cs")}
+  lang="java"
+  theme={nightOwl}
+/>
+
+```notes
+- should be -- AddTransient
+
+- here's an actual photo of the payment service from one of those debugging sessions
+```
+
+---
+
+<Image src="material/images/traffic-jam.jpg" size="contain" />
+
+```notes
+```
+
+---
+
+<CodeSurfer
+  notes=""
+  code={require("!raw-loader!./material/code-examples/payment-processor/order-service.2.cs")}
+  lang="java"
+  theme={nightOwl}
+/>
+
+```notes
+- if these services had used what we've learned so far, this bug wouldn't have even been possible
+```
+
+---
+
+# mutability..
+
+<ol style={{textAlign: "left"}}>
+  <Appear>
+    <li><h2>hides change</h2></li>
+    <li><h2>introduces unpredictability</h2></li>
+    <li><h2>makes code time/order-dependent</h2></li>
+    <li><h2>convolutes dependencies across your apps</h2></li>
+    <li><h2>increases complexity exponentially as your apps grow</h2></li>
+  </Appear>
+</ol>
+
+```notes
+- recap
+
+- complexity is exponential
+
+- these problems are hard to spot if you aren't looking for mutability itself
+
+- perfect storm for hiding logic "between the lines"
+
+- need to hold the entire program in your head to "safely" alter just one piece
+```
+
+---
+
+# _anything_ you don't completely understand is probably a bug, and knowing you completely understand is somewhere between "really hard" and "impossible"
+
+---
+
+# to learn more:
+
+<ol style={{textAlign: "left", listStyle: "none"}}>
+  <Appear>
+    <li><h2><a href="#20">Slide #20</a> the earlier slide which linked a few resources</h2></li>
+    <li><h2><a href="https://elm-lang.org/">Elm</a> beginner focused, will show you how you can build interactive UIs without mutability</h2></li>
+    <li><h2><a href="http://www.purescript.org/">PureScript</a> similar to Elm in many ways, but with many more features</h2></li>
+    <li><h2><a href="http://haskellbook.com/">Haskell from First Principles</a> a complete book for learning Haskell, the language Elm and PureScript are based on</h2></li>
+    <li><h2><a href="https://www.rust-lang.org/en-US/">Rust</a> more C-style, unique "ownership tracking" type system</h2></li>
+  </Appear>
+</ol>
+
+---
+
+[spicydonuts.github.io/invisible-code](https://spicydonuts.github.io/invisible-code/)
+
+(thank you!)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# important points
+
+- mutability makes dependencies more complicated
+- mutability hides change
+  - create new copies when updating
+  - return updates, don't inject them
+- mutability introduces time-dependent bugs
+- mutating a value "claims ownership" of the value
+  - multiple owners is bad
+  - request changes instead (using immutable data, like actions/messages)
+- many processes which seem to require mutability can be described with observables
+  - rx autocomplete
+- need mutability at some point.. describe changes desired (testing, ioc)
+

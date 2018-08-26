@@ -1,0 +1,2 @@
+blue(someData);
+red(someData);
