@@ -26,6 +26,10 @@ const Name = styled(Row)`
   font-size: 1.2em;
 `;
 
+const TalkUrl = styled(Row)`
+  margin-top: 1em;
+`;
+
 const Icon = styled.div`
   background-image: url(${props => props.src});
   height: ${props => props.size};
@@ -35,21 +39,34 @@ const Icon = styled.div`
   background-size: cover;
 `;
 
+const Link = styled.a`
+  text-decoration: none;
+`;
+
 export default () => (
   <Col>
     <ConfTitle>UtahJS Conf 2018</ConfTitle>
     <Name>Michael Trotter</Name>
-    <Row>
-      <Icon src="material/icons/twitter.png" size="1.2em" />
-      spcydnts
-    </Row>
-    <Row>
-      <Icon src="material/icons/github.png" size="0.8em" />
-      &nbsp;spicydonuts
-    </Row>
-    <Row>
-      <Icon src="material/icons/slack.png" size="0.8em" />
-      &nbsp;spicydonuts
-    </Row>
+    <Link href="https://twitter.com/spcydnts" target="_blank">
+      <Row>
+        <Icon src="material/icons/twitter.png" size="1.2em" />
+        spcydnts
+      </Row>
+    </Link>
+    <Link href="https://github.com/spicydonuts/" target="_blank">
+      <Row>
+        <Icon src="material/icons/github.png" size="0.8em" />
+        &nbsp;spicydonuts
+      </Row>
+    </Link>
+    <Link href="https://slack.utahjs.com/" target="_blank">
+      <Row>
+        <Icon src="material/icons/slack.png" size="0.8em" />
+        &nbsp;spicydonuts
+      </Row>
+    </Link>
+    <Link href="https://spicydonuts.github.io/invisible-code/">
+      <TalkUrl>spicydonuts.github.io/invisible-code</TalkUrl>
+    </Link>
   </Col>
 );

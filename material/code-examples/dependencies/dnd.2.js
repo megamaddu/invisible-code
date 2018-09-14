@@ -1,9 +1,8 @@
-import React from "react";
-
-class DragDrop extends React.Component {
+class FileUpload extends React.Component {
   static initialState = {
     isDragging: false,
-    isOverTarget: false
+    isOverTarget: false,
+    unrelatedBusinessLogic: ...
   };
 
   state = initialState;
@@ -15,8 +14,6 @@ class DragDrop extends React.Component {
   };
 
   render() {
-    return <div>[Drop area]</div>;
+    return ...
   }
 }
-
-export default DragDrop;
