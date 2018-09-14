@@ -29,12 +29,16 @@ export default Invert
 ```notes
 - intro
 
-- start with a quote
+- you can find me in these places
+
+- link to these slides at the bottom, also I shared the link on Slack and Twitter and it will be on the last slide as well
+
+- I'm going to start with a quote
 ```
 
 ---
 
-# "Avoid global state"
+# "avoid global state"
 
 <Appear>
   <h2>- everyone</h2>
@@ -42,13 +46,13 @@ export default Invert
 </Appear>
 
 ```notes
-- who said? everyone?
+- "avoid global state"
 
-- heard this a lot
+- who said this?
 
-- didn't understand why
+- everyone
 
-- learned more
+- even though I heard this a lot, it took me a long time to understand "why"
 
 - touches much much more than I thought
 
@@ -56,7 +60,7 @@ export default Invert
 
 - so most of this talk is going to cover the problems mutability causes
 
-- will come back to the "invisible code" idea
+- and I'll come back to the "invisible code" idea
 ```
 
 ---
@@ -71,6 +75,14 @@ export default Invert
 
 ```notes
 - so, to break it down a bit more...
+
+- we're going to talk about
+
+- the problems shared, mutable state causes
+
+- how you can recognize it
+
+- what you can do to fix it
 ```
 
 ---
@@ -80,7 +92,7 @@ export default Invert
 # mutability hides change
 
 ```notes
-- mutability hides change
+- problem 1: mutability hides change
 
 - note: I'll use the word "mutability" a lot -- assume "shared, mutable state"
 ```
@@ -93,6 +105,20 @@ export default Invert
   theme={nightOwl}
 />
 
+```notes
+- consider this code
+
+- assigning an object to `a`
+
+- mutating the sum property
+
+- (const doesn't matter here, of course)
+
+- but what if we then want to compare to the original value?
+
+- can't, it's gone -- it's been mutated in-place
+```
+
 ---
 
 <CodeSurfer
@@ -101,11 +127,27 @@ export default Invert
   theme={nightOwl}
 />
 
+```notes
+- here we're going the same thing
+
+- but no mutation -- original value is intact
+
+- now we can get a diff of before and after!
+
+- so how can we recognize mutation in existing code?
+```
+
 ---
 
 <Recognize>recognize #1</Recognize>
 
 # the missing return value
+
+```notes
+- it can be tricky
+
+- but one of the easiest red flags to spot are functions with no return values
+```
 
 ---
 
@@ -120,11 +162,11 @@ export default Invert
 />
 
 ```notes
-- no return value (from `transform`, the `forEach` callback, or `forEach` itself)
+- uh oh, transform isn't returning anything
 
-  - a function has to do _something_, or there's no reason to call it
+- a function has to do _something_, or there's no reason to call it
 
-  - if it doesn't return anything... something is mutating
+- if that something isn't return a value... something is mutating
 
 - mutating unowned things (will return to this ownership idea)
 ```
@@ -150,7 +192,7 @@ export default Invert
   code={require("!raw-loader!./material/code-examples/looping/map.js")}
   theme={nightOwl}
   steps={[
-    { tokens: { 1: [4], 2: [2, 6], 4: [1, 2], 5: [2, 3, 4] }, notes: "doesn't mutate these 👍" },
+    { tokens: { 1: [4], 2: [2, 6], 4: [1, 2], 5: [2, 3, 4] }, notes: "no longer mutating these 👍" },
     { tokens: { 2: [1, 3, 4], 3: [1] }, notes: "results are returned 👍" },
   ]}
 />
@@ -189,7 +231,7 @@ export default Invert
 
 - reading from mutable state
 
-  - almost as bad as writing to it (unless it shouldn't be mutable and someone else isn't playing nice!)
+- all the same implications as actually mutating something
 ```
 
 ---
@@ -262,11 +304,13 @@ what about lifting a write mutation?
 ```notes
 - does console.log involve mutation?
 
-  - notice, there's no return value..
+- notice, there's no return value..
 
-  - mutating the console
+- mutating the console
 
-- so how do lift we console.log?
+- obviously we need to call console.log _somewhere_, or our program won't do anything
+
+- but can we pull it out of our business logic?
 ```
 
 ---
@@ -283,7 +327,9 @@ what about lifting a write mutation?
 />
 
 ```notes
-- return a description of the mutation you want performed!
+- use the fix from problem 1!
+
+- return a description of the mutation you want performed
 
 - also kinda like IoC
 
@@ -304,10 +350,14 @@ for more detail see:
 
 - [FP to the Max](https://www.youtube.com/watch?v=sxudIMiOo68)
   an in depth tutorial by John De Goes
-- [Mostly Adequate Guide to Functional Programming](https://mostly-adequate.gitbooks.io/mostly-adequate-guide/)
-  a complete intro to FP by Brian Lonsdorf
 - [Fantasy Land](https://github.com/fantasyland/fantasy-land)
   a library of abstraction tools for JavaScript
+
+```notes
+- more references and links at the end
+
+- but adding this one here just to emphasize this example is a naive way to do this
+```
 
 ---
 
@@ -365,11 +415,17 @@ for more detail see:
 
 <Recognize>recognize #3</Recognize>
 
-# any mutability
+# any shared, mutable state
 
 <Appear>
   <h1>(we're building off of #1 &amp; #2 😉)</h1>
 </Appear>
+
+```notes
+- any shared, mutable state is a potential source for ordering/timing bugs
+
+- (build off of 1 and 2)
+```
 
 ---
 
@@ -389,9 +445,10 @@ for more detail see:
 
 <Solution>fix #3</Solution>
 
-# use those return values! ➿
+# use return values! 🎗
 
 ```notes
+- modify these functions to use return values instead of mutation
 ```
 
 ---
@@ -433,17 +490,16 @@ for more detail see:
   notes=""
   code={require("!raw-loader!./material/code-examples/looping/for.js")}
   theme={nightOwl}
-  steps={[
-    { tokens: { 1: [4], 2: [0, 4] }, lines: [3], notes: "" },
-  ]}
 />
 
 ```notes
-- remember this example
+- remember this example, where I mentioned the idea of "ownership"
 
-- mentioned ownership
+- transform didn't create these objects
 
-- TODO
+- it doesn't know what they're used for outside this function
+
+- mutating them is not safe, it assumes too much
 ```
 
 ---
@@ -458,9 +514,9 @@ for more detail see:
 />
 
 ```notes
-- these $scopes are different objects
+- in angular1, mutating shared objects was extremely common
 
-- in this code
+- these $scopes are different objects, each controller "instance" gets one
 ```
 
 ---
@@ -475,7 +531,9 @@ for more detail see:
 />
 
 ```notes
-- `outer` available on inner `$scope`
+- and when you nest them like this
+
+- `outer` is available on inner `$scope`
 ```
 
 ---
@@ -886,7 +944,17 @@ export default FileSurface
 />
 
 ```notes
+- it's easy to look at this in hindsight
+
+- "of course you shouldn't have written that but!"
+
+- but understanding the underlying principles is extremely powerful
+
 - if these services had used what we've learned so far, this bug wouldn't have even been possible
+
+- you could highlight this code as "likely to contain bugs" regardless of the language, libraries, or business logic
+
+- I think that's really cool
 ```
 
 ---
@@ -900,24 +968,26 @@ export default FileSurface
     <li><h2>makes code time/order-dependent</h2></li>
     <li><h2>convolutes dependencies across your apps</h2></li>
     <li><h2>increases complexity exponentially as your apps grow</h2></li>
+    <li><h2>all these hidden complexities are "invisible code"</h2></li>
+    <li><h2>even invisible code comes with tech debt 😉</h2></li>
   </Appear>
 </ol>
 
 ```notes
-- recap
-
-- complexity is exponential
+- recap (5)
 
 - these problems are hard to spot if you aren't looking for mutability itself
 
 - perfect storm for hiding logic "between the lines"
 
 - need to hold the entire program in your head to "safely" alter just one piece
+
+*bonus*
+
+- all these hidden complexities are "invisible code"
+
+- even invisible code comes with tech debt
 ```
-
----
-
-# _anything_ you don't completely understand is probably a bug, and knowing you completely understand is somewhere between "really hard" and "impossible"
 
 ---
 
@@ -925,114 +995,28 @@ export default FileSurface
 
 <ol style={{textAlign: "left", listStyle: "none"}}>
   <Appear>
-    <li><h2><a href="#20">Slide #20</a> the earlier slide which linked a few resources</h2></li>
+    <li><h2><a href="https://www.youtube.com/watch?v=sxudIMiOo68">FP to the Max</a> an in depth tutorial by John De Goes</h2></li>
+    <li><h2><a href="https://mostly-adequate.gitbooks.io/mostly-adequate-guide/">Mostly Adequate Guide to Functional Programming</a> a complete intro to FP by Brian Lonsdorf</h2></li>
+    <li><h2><a href="https://github.com/fantasyland/fantasy-land">Fantasy Land</a> a library of abstraction tools for JavaScript</h2></li>
     <li><h2><a href="https://elm-lang.org/">Elm</a> beginner focused, will show you how you can build interactive UIs without mutability</h2></li>
     <li><h2><a href="http://www.purescript.org/">PureScript</a> similar to Elm in many ways, but with many more features</h2></li>
     <li><h2><a href="http://haskellbook.com/">Haskell from First Principles</a> a complete book for learning Haskell, the language Elm and PureScript are based on</h2></li>
     <li><h2><a href="https://www.rust-lang.org/en-US/">Rust</a> more C-style, unique "ownership tracking" type system</h2></li>
+    <li><h2><a href="https://rxjs-dev.firebaseapp.com/">RxJS</a> describe complex, stateful behavior statically (a little like render props in React)</h2></li>
   </Appear>
 </ol>
+
+```notes
+- appear 9
+```
 
 ---
 
 [spicydonuts.github.io/invisible-code](https://spicydonuts.github.io/invisible-code/)
 
-(thank you!)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# important points
-
-- mutability makes dependencies more complicated
-- mutability hides change
-  - create new copies when updating
-  - return updates, don't inject them
-- mutability introduces time-dependent bugs
-- mutating a value "claims ownership" of the value
-  - multiple owners is bad
-  - request changes instead (using immutable data, like actions/messages)
-- many processes which seem to require mutability can be described with observables
-  - rx autocomplete
-- need mutability at some point.. describe changes desired (testing, ioc)
-
+special thanks:
+
+- Brent Jackson for authoring mdx-deck
+- Rodrigo Pombo for authoring mdx-deck-code-surfer
+- Julia Gao for helping me brainstorm and review content
+- all of you for attending!

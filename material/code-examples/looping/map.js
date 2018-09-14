@@ -1,8 +1,8 @@
-function transform(things) {
-  return things.map(thing => {
+function transform(items) {
+  return items.map(item => {
     return {
-      ...thing,
-      privates: thing.privates
+      ...item,
+      privates: 17
     };
   });
 }
